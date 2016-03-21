@@ -34,35 +34,110 @@
 
 namespace cupla{
 
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) || \
-    defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED) || \
-    defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    /** optimize elemSize and blockSize for a special device
-     *
-     * This implementation does nothing (empty wrapper)
-     */
+    template< typename T_Acc>
     struct OptimizeBlockElem
     {
-        static void get( dim3 const & , dim3 const &  )
-        {
-
-        }
+        static void get( dim3 const & , dim3 const &  );
     };
-#endif
 
-#if defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) ||                            \
-    defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
     /** optimize elemSize and blockSize for a special device
      *
      * This implementation swap elemSize and blockSize
      */
-    struct OptimizeBlockElem
+    struct BlockElemSwitched
     {
+        static constexpr bool isIdentity = false;
         static void get( dim3 & blockSize, dim3 & elemSize )
         {
             std::swap(blockSize,elemSize);
         }
     };
+
+    struct BlockElemIdentity
+    {
+        static constexpr bool isIdentity = true;
+        static void get( dim3 & blockSize, dim3 & elemSize )
+        {
+
+        }
+    };
+
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED)
+    template<
+        typename T_KernelDim,
+        typename T_IndexType
+    >
+    struct OptimizeBlockElem<
+        ::alpaka::acc::AccCpuOmp2Threads<
+            T_KernelDim,
+            T_IndexType
+        >
+    > : BlockElemIdentity
+    { };
+#endif
+
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
+    template<
+        typename T_KernelDim,
+        typename T_IndexType
+    >
+    struct OptimizeBlockElem<
+        ::alpaka::acc::AccCpuThreads<
+            T_KernelDim,
+            T_IndexType
+        >
+    > : BlockElemIdentity
+    { };
+#endif
+
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+    template<
+        typename T_KernelDim,
+        typename T_IndexType
+    >
+    struct OptimizeBlockElem<
+        ::alpaka::acc::AccGpuCudaRt<
+            T_KernelDim,
+            T_IndexType
+        >
+    > : BlockElemIdentity
+    { };
+#endif
+
+#if defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED)
+    /** optimize elemSize and blockSize for a special device
+     *
+     * This implementation swap elemSize and blockSize
+     */
+    template<
+        typename T_KernelDim,
+        typename T_IndexType
+    >
+    struct OptimizeBlockElem<
+        ::alpaka::acc::AccCpuOmp2Blocks<
+            T_KernelDim,
+            T_IndexType
+        >
+    > : BlockElemSwitched
+    { };
+#endif
+
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    /** optimize elemSize and blockSize for a special device
+     *
+     * This implementation swap elemSize and blockSize
+     */
+    template<
+        typename T_KernelDim,
+        typename T_IndexType
+    >
+    struct OptimizeBlockElem<
+        ::alpaka::acc::AccCpuSerial<
+            T_KernelDim,
+            T_IndexType
+        >
+    > : BlockElemSwitched
+    { };
 #endif
 
 struct KernelHelper
@@ -101,6 +176,7 @@ struct CuplaKernel :
 };
 
 template<
+    typename T_Acc,
     typename T_Kernel,
     typename T_Stream,
     typename... T_Args
@@ -123,7 +199,7 @@ void startKernel(
       static_cast<IdxVec3>(blockSize),
       static_cast<IdxVec3>(elemPerThread)
   );
-  auto const exec(::alpaka::exec::create<Acc>(workDiv, kernel, args...));
+  auto const exec(::alpaka::exec::create<T_Acc>(workDiv, kernel, args...));
   ::alpaka::stream::enqueue(stream, exec);
 }
 
@@ -167,7 +243,7 @@ namespace traits
 
 #define CUPLA_CUDA_KERNEL_PARAMS(...)                                          \
     const KernelType cuplaTheOneAndOnlyKernel( cuplaSharedMemSize );           \
-    cupla::startKernel(                                                        \
+    cupla::startKernel<CuplaAcc>(                                              \
         cuplaTheOneAndOnlyKernel,                                              \
         cuplaGridSize,                                                         \
         cuplaBlockSize,                                                        \
@@ -202,13 +278,14 @@ namespace traits
  * The alpaka element level is ignored and always set to dim3(1,1,1)
  */
 #define CUPLA_KERNEL(...) {                                                    \
+    using CuplaAcc = cupla::Acc;                                               \
     using KernelType = ::cupla::CuplaKernel< __VA_ARGS__ >;                    \
     CUPLA_CUDA_KERNEL_CONFIG_DEFAULT
 
 #define CUPLA_CUDA_KERNEL_CONFIG_OPTI(gridSize,blockSize,...)                  \
     dim3 tmp_cuplaBlockSize = dim3( blockSize );                               \
     dim3 tmp_cuplaElemSize;                                                    \
-    cupla::OptimizeBlockElem::get( tmp_cuplaBlockSize, tmp_cuplaElemSize );    \
+    cupla::OptimizeBlockElem<CuplaAcc>::get( tmp_cuplaBlockSize, tmp_cuplaElemSize );    \
     CUPLA_CUDA_KERNEL_CONFIG(gridSize,tmp_cuplaBlockSize,tmp_cuplaElemSize,__VA_ARGS__)
 
 /** call the kernel with an hidden element layer
@@ -221,6 +298,7 @@ namespace traits
  * and the elemSize is set to the user defined blockSize
  */
 #define CUPLA_KERNEL_OPTI(...) {                                               \
+    using CuplaAcc = cupla::AccFast;                                           \
     using KernelType = ::cupla::CuplaKernel< __VA_ARGS__ >;                    \
     CUPLA_CUDA_KERNEL_CONFIG_OPTI
 
@@ -229,6 +307,7 @@ namespace traits
  * The kernel must support the alpaka element level
  */
 #define CUPLA_KERNEL_ELEM(...) {                                               \
+    using CuplaAcc = cupla::AccFast;                                           \
     using KernelType = ::cupla::CuplaKernel< __VA_ARGS__ >;                    \
     CUPLA_CUDA_KERNEL_CONFIG
 

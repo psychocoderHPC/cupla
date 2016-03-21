@@ -58,9 +58,10 @@
         ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED                                     \
     )
 
-#if( CUPLA_NUM_SELECTED_DEVICES > 1 )
+#if( CUPLA_NUM_SELECTED_DEVICES > 2  )
     #error "please select only one accelerator"
 #endif
+#define CUPLA_FAST_KERNEL (CUPLA_NUM_SELECTED_DEVICES - 1)
 
 #if( CUPLA_NUM_SELECTED_DEVICES == 0 )
     #error "there is no accelerator selected, please run `ccmake .` and select one"
@@ -103,7 +104,7 @@ namespace cupla {
     defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
 
     using AccDev = ::alpaka::dev::DevCpu;
-    using AccStream = ::alpaka::stream::StreamCpuAsync;
+    using AccStream = ::alpaka::stream::StreamCpuSync;
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
     using Acc = ::alpaka::acc::AccCpuOmp2Threads<
@@ -112,11 +113,18 @@ namespace cupla {
     >;
 #endif
 
-#ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-    using Acc = ::alpaka::acc::AccCpuOmp2Blocks<
-        KernelDim,
-        IdxType
-    >;
+#if (ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
+    #if (CUPLA_FAST_KERNEL == 0)
+        using Acc = ::alpaka::acc::AccCpuOmp2Blocks<
+            KernelDim,
+            IdxType
+        >;
+    #else
+        using AccFast = ::alpaka::acc::AccCpuOmp2Blocks<
+            KernelDim,
+            IdxType
+        >;
+    #endif
 #endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
@@ -127,10 +135,17 @@ namespace cupla {
 #endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-    using Acc = ::alpaka::acc::AccCpuSerial<
-        KernelDim,
-        IdxType
-    >;
+    #if (CUPLA_FAST_KERNEL == 0)
+        using Acc = ::alpaka::acc::AccCpuSerial<
+            KernelDim,
+            IdxType
+        >;
+    #else
+        using AccFast = ::alpaka::acc::AccCpuSerial<
+            KernelDim,
+            IdxType
+        >;
+    #endif
 #endif
 
 #endif
@@ -143,6 +158,9 @@ namespace cupla {
         KernelDim,
         IdxType
     >;
+#endif
+#if (CUPLA_FAST_KERNEL == 0)
+        using AccFast = Acc;
 #endif
 
     template<
