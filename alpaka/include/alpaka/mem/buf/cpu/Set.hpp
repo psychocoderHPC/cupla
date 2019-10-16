@@ -145,7 +145,6 @@ namespace alpaka
                                     // avoid forbidden host-call
                                     // within host-device functions
                                     #if defined(BOOST_COMP_HCC) && BOOST_COMP_HCC
-                                    ALPAKA_FN_HOST_ACC
                                     #endif
                                     [&](vec::Vec<DimMin1, ExtentSize> const & idx)
                                     {

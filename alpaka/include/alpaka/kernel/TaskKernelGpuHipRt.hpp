@@ -81,7 +81,7 @@ namespace alpaka
                         std::is_same<typename std::result_of<
                             TKernelFnObj(acc::AccGpuHipRt<TDim, TIdx> const &, TArgs const & ...)>::type, void>::value,
                         "The TKernelFnObj is required to return void!");
-                    
+
                     acc::AccGpuHipRt<TDim, TIdx> acc(threadElemExtent);
 
                     kernelFnObj(
@@ -344,7 +344,7 @@ namespace alpaka
                             // avoid forbidden host-call
                             // within host-device functions
                             #if defined(BOOST_COMP_HCC) && BOOST_COMP_HCC
-                            ALPAKA_FN_HOST_ACC
+                            //ALPAKA_FN_HOST_ACC
                             #endif
                             [&](TArgs const & ... args)
                             {
