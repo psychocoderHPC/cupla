@@ -1,9 +1,11 @@
 **alpaka** - Abstraction Library for Parallel Kernel Acceleration
 =================================================================
 
-[![Travis CI Build Status](https://travis-ci.org/ComputationalRadiationPhysics/alpaka.svg?branch=develop)](https://travis-ci.org/ComputationalRadiationPhysics/alpaka)
+
+[![Continuous Integration](https://github.com/BenjaminW3/alpaka/workflows/Continuous%20Integration/badge.svg)](https://github.com/ComputationalRadiationPhysics/alpaka/actions?query=workflow%3A%22Continuous+Integration%22)
+[![Travis CI Build Status](https://travis-ci.org/alpaka-group/alpaka.svg?branch=develop)](https://travis-ci.org/alpaka-group/alpaka)
 [![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
-[![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20mac-lightgrey.svg)](https://github.com/ComputationalRadiationPhysics/alpaka)
+[![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20mac-lightgrey.svg)](https://github.com/alpaka-group/alpaka)
 [![License](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://www.mozilla.org/en-US/MPL/2.0/)
 
 ![Alpaka](doc/images/alpaka_401x135.png)
@@ -39,7 +41,7 @@ Documentation
 -------------
 
 The [general documentation](doc/markdown/Index.md) is located within the `doc/markdown` subfolder of the repository.
-The [source code documentation](http://computationalradiationphysics.github.io/alpaka/) is generated with [doxygen](http://www.doxygen.org).
+The [source code documentation](http://alpaka-group.github.io/alpaka/) is generated with [doxygen](http://www.doxygen.org).
 
 
 Accelerator Back-ends
@@ -63,7 +65,7 @@ Supported Compilers
 
 This library uses C++14 (or newer when available).
 
-|Accelerator Back-end|gcc 5.5 <br/> (Linux)|gcc 6.4/7.3 <br/> (Linux)|gcc 8.1/9.1 <br/> (Linux)|clang 4 <br/> (Linux)|clang 5 <br/> (Linux)|clang 6 <br/> (Linux)|clang 7 <br/> (Linux)|clang 8 <br/> (Linux)|clang 9 <br/> (Linux)|Apple LLVM 10.2-11.2 <br/> (macOS)|MSVC 2017/2019 <br/> (Windows)|
+|Accelerator Back-end|gcc 5.5 <br/> (Linux)|gcc 6.4/7.3 <br/> (Linux)|gcc 8.1/9.1 <br/> (Linux)|clang 4 <br/> (Linux)|clang 5 <br/> (Linux)|clang 6 <br/> (Linux)|clang 7 <br/> (Linux)|clang 8 <br/> (Linux)|clang 9 <br/> (Linux)|Apple LLVM 11.0-11.4 <br/> (macOS)|MSVC 2017/2019 <br/> (Windows)|
 |---|---|---|---|---|---|---|---|---|---|---|---|
 |Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
@@ -111,7 +113,7 @@ Examples of how to utilize alpaka within CMake can be found in the `example` fol
 The whole alpaka library can be included with: `#include <alpaka/alpaka.hpp>`
 Code that is not intended to be utilized by the user is hidden in the `detail` namespace.
 
-Furthermore, for a CUDA-like experience when adopting alpaka we provide the library [*cupla*](https://github.com/ComputationalRadiationPhysics/cupla).
+Furthermore, for a CUDA-like experience when adopting alpaka we provide the library [*cupla*](https://github.com/alpaka-group/cupla).
 It enables a simple and straightforward way of porting existing CUDA applications to alpaka and thus to a variety of accelerators.
 
 Introduction
